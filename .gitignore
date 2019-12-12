@@ -1,0 +1,9 @@
+# vim
+*.swp
+
+# bin
+time-assistant-api
+
+# go module
+go.mod
+go.sum
