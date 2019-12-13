@@ -8,13 +8,11 @@ package main
 
 import (
   "log"
-  "fmt"
-  "time"
-  "strconv"
   "encoding/json"
   "net/http"
   "github.com/go-redis/redis/v7"
   "github.com/graphql-go/graphql"
+  "github.com/jiangtaozy/time-assistant-api/mutation"
 )
 
 type PostData struct {
@@ -23,11 +21,10 @@ type PostData struct {
 }
 
 var port = ":5000"
-var redisClient *redis.Client
 var schema graphql.Schema
 
 func main() {
-  redisClient = redis.NewClient(&redis.Options{
+  mutation.RedisClient = redis.NewClient(&redis.Options{
     Addr: "localhost:6379",
     DB: 1,
   });
@@ -42,7 +39,7 @@ func main() {
       },
     },
   })
-  mutation := graphql.NewObject(graphql.ObjectConfig{
+  rootMutation := graphql.NewObject(graphql.ObjectConfig{
     Name: "mutaion",
     Fields: graphql.Fields{
       "create": &graphql.Field{
@@ -57,38 +54,12 @@ func main() {
           return text, nil
         },
       },
-      "userRecordTimes": &graphql.Field{
-        Type: graphql.String,
-        Args: graphql.FieldConfigArgument{
-          "id": &graphql.ArgumentConfig{
-            Type: graphql.NewNonNull(graphql.String),
-          },
-          "lastDayRecordTimes": &graphql.ArgumentConfig{
-            Type: graphql.NewNonNull(graphql.Int),
-          },
-        },
-        Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-          id, _ := params.Args["id"].(string)
-          lastDayRecordTimes, _ := params.Args["lastDayRecordTimes"].(int)
-          offsetString, err := redisClient.Get(id).Result()
-          offset, _ := strconv.ParseInt(offsetString, 0, 64)
-          if err == redis.Nil {
-            offset, _ = redisClient.BitCount("user", nil).Result()
-            _ = redisClient.Set(id, offset, 0).Err()
-            _ = redisClient.SetBit("user", offset, 1).Err()
-          }
-          now := time.Now()
-          lastDay := now.AddDate(0, 0, -1)
-          recordTimesBitmapKey := fmt.Sprintf("%d.%d.%d-%d", lastDay.Year(), lastDay.Month(), lastDay.Day(), lastDayRecordTimes)
-          _ = redisClient.SetBit(recordTimesBitmapKey, offset, 1).Err()
-          return "ok", nil
-        },
-      },
+      "userRecordTimes": mutation.UserRecordTimesMutation,
     },
   })
   schema, _ = graphql.NewSchema(graphql.SchemaConfig{
     Query: query,
-    Mutation: mutation,
+    Mutation: rootMutation,
   })
   log.Println("listen at ", port)
   http.HandleFunc("/", handle)
