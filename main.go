@@ -13,6 +13,7 @@ import (
   "github.com/go-redis/redis/v7"
   "github.com/graphql-go/graphql"
   "github.com/jiangtaozy/time-assistant-api/mutation"
+  "github.com/jiangtaozy/time-assistant-api/query"
 )
 
 type PostData struct {
@@ -28,7 +29,7 @@ func main() {
     Addr: "localhost:6379",
     DB: 1,
   });
-  query := graphql.NewObject(graphql.ObjectConfig{
+  rootQuery := graphql.NewObject(graphql.ObjectConfig{
     Name: "query",
     Fields: graphql.Fields{
       "hello": &graphql.Field{
@@ -37,6 +38,7 @@ func main() {
           return "world", nil
         },
       },
+      "userRecordTimes": query.UserRecordTimesQuery,
     },
   })
   rootMutation := graphql.NewObject(graphql.ObjectConfig{
@@ -58,7 +60,7 @@ func main() {
     },
   })
   schema, _ = graphql.NewSchema(graphql.SchemaConfig{
-    Query: query,
+    Query: rootQuery,
     Mutation: rootMutation,
   })
   log.Println("listen at ", port)
