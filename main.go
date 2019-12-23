@@ -32,12 +32,7 @@ func main() {
   rootQuery := graphql.NewObject(graphql.ObjectConfig{
     Name: "query",
     Fields: graphql.Fields{
-      "hello": &graphql.Field{
-        Type: graphql.String,
-        Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-          return "world", nil
-        },
-      },
+      "version": query.VersionQuery,
       "userRecordTimes": query.UserRecordTimesQuery,
     },
   })
