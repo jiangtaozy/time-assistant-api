@@ -11,10 +11,38 @@ import (
   "github.com/jiangtaozy/time-assistant-api/mutation"
 )
 
+type Version struct {
+  VersionName string `json:"versionName"`
+  VersionNumber string `json:"versionNumber"`
+  VersionUrl string `json:"versionUrl"`
+}
+
 var VersionQuery = &graphql.Field{
-  Type: graphql.String,
+  Type: graphql.NewObject(
+    graphql.ObjectConfig{
+      Name: "Version",
+      Fields: graphql.Fields{
+        "versionName": &graphql.Field{
+          Type: graphql.String,
+        },
+        "versionNumber": &graphql.Field{
+          Type: graphql.String,
+        },
+        "versionUrl": &graphql.Field{
+          Type: graphql.String,
+        },
+      },
+    },
+  ),
   Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-    version, _ := mutation.RedisClient.Get("version").Result()
+    versionName, _ := mutation.RedisClient.Get("versionName").Result()
+    versionNumber, _ := mutation.RedisClient.Get("versionNumber").Result()
+    versionUrl, _ := mutation.RedisClient.Get("versionUrl").Result()
+    version := Version{
+      VersionName: versionName,
+      VersionNumber: versionNumber,
+      VersionUrl: versionUrl,
+    };
     return version, nil
   },
 }
