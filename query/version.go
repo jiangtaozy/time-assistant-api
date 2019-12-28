@@ -15,6 +15,7 @@ type Version struct {
   VersionName string `json:"versionName"`
   VersionNumber string `json:"versionNumber"`
   VersionUrl string `json:"versionUrl"`
+  VersionApkUrl string `json:"versionApkUrl"`
 }
 
 var VersionQuery = &graphql.Field{
@@ -31,6 +32,9 @@ var VersionQuery = &graphql.Field{
         "versionUrl": &graphql.Field{
           Type: graphql.String,
         },
+        "versionApkUrl": &graphql.Field{
+          Type: graphql.String,
+        },
       },
     },
   ),
@@ -38,10 +42,12 @@ var VersionQuery = &graphql.Field{
     versionName, _ := mutation.RedisClient.Get("versionName").Result()
     versionNumber, _ := mutation.RedisClient.Get("versionNumber").Result()
     versionUrl, _ := mutation.RedisClient.Get("versionUrl").Result()
+    versionApkUrl, _ := mutation.RedisClient.Get("versionApkUrl").Result()
     version := Version{
       VersionName: versionName,
       VersionNumber: versionNumber,
       VersionUrl: versionUrl,
+      VersionApkUrl: versionApkUrl,
     };
     return version, nil
   },
